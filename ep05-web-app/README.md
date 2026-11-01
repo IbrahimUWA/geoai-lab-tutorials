@@ -1,6 +1,6 @@
 # Episode 5: A geospatial web app in an hour, with AI-assisted coding
 
-A single static HTML page (Leaflet) that shows the outputs of episodes 2, 3 and 4 on a satellite
+A single static HTML page (Leaflet) that shows the outputs of episodes 2, 3 and 4 on an OpenStreetMap
 basemap, with layer toggles, an opacity slider, legends and click-to-read values. No server-side
 code, so it hosts for free on GitHub Pages.
 
