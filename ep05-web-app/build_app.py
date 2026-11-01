@@ -70,6 +70,29 @@ def raster_layer(path, out_dir, name, cmap, vmin=None, vmax=None, classes=None, 
             "classes": classes, "colors": colors, "cmap": cmap}
 
 
+def rgb_layer(path, out_dir, name="rgb", credit="", max_px=1400):
+    """Reproject a 3-band uint8 image to EPSG:4326 and save it as a PNG backdrop (no value grid)."""
+    with rasterio.open(path) as src:
+        dst_crs = "EPSG:4326"
+        tr, w, h = calculate_default_transform(src.crs, dst_crs, src.width, src.height, *src.bounds)
+        scale = max(1, max(w, h) / max_px)
+        w, h = int(w / scale), int(h / scale)
+        tr = rasterio.Affine(tr.a * scale, tr.b, tr.c, tr.d, tr.e * scale, tr.f)
+        bands = []
+        for b in (1, 2, 3):
+            dst = np.zeros((h, w), np.uint8)
+            reproject(src.read(b), dst, src_transform=src.transform, src_crs=src.crs,
+                      dst_transform=tr, dst_crs=dst_crs, resampling=Resampling.bilinear, dst_nodata=0)
+            bands.append(dst)
+        # pixels outside the rotated footprint come back as 0 in every band -> transparent
+        alpha = (np.any(np.dstack(bands) > 0, axis=2) * 255).astype(np.uint8)
+        w_, s, e, n = transform_bounds(src.crs, dst_crs, *src.bounds)
+    bounds = [[s, w_], [n, e]]
+    Image.fromarray(np.dstack(bands + [alpha])).save(os.path.join(out_dir, f"{name}.png"))
+    print(f"  {name}: {w}x{h} RGB backdrop")
+    return {"id": name, "png": f"{name}.png", "bounds": bounds, "rgb": True, "on": True, "credit": credit}
+
+
 def crowns_layer(gpkg, out_dir, name="crowns"):
     import geopandas as gpd
     g = gpd.read_file(gpkg).to_crs(4326)
@@ -86,8 +109,13 @@ def main():
     ap.add_argument("--trees", required=True)
     ap.add_argument("--crops", required=True)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--rgb", default=None, help="georeferenced RGB tile under the crowns "
+                    "(default: the OSBS_029.tif sample bundled with DeepForest)")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
+    if a.rgb is None:
+        from deepforest.utilities import get_data  # noqa: imports torch, slow but only once
+        a.rgb = get_data("OSBS_029.tif")
     print("Layers:")
     manifest = {
         "sites": [
@@ -96,7 +124,8 @@ def main():
                         raster_layer(os.path.join(a.lidar, "dtm.tif"), a.out, "dtm", "terrain")],
              "units": "ft"},
             {"name": "Ordway-Swisher, Florida: tree crowns (Episode 3)",
-             "layers": [crowns_layer(os.path.join(a.trees, "tree_crowns.gpkg"), a.out)], "units": "m"},
+             "layers": [crowns_layer(os.path.join(a.trees, "tree_crowns.gpkg"), a.out),
+                        rgb_layer(a.rgb, a.out, credit="NEON airborne RGB, 10 cm (OSBS site)")], "units": "m"},
             {"name": "Story County, Iowa: crop types (Episode 4)",
              "layers": [raster_layer(os.path.join(a.crops, "crop_map.tif"), a.out, "crops", None,
                                      classes=["Corn", "Soybeans", "Alfalfa / hay", "Grass / pasture", "Forest", "Water", "Developed", "Wetlands"],

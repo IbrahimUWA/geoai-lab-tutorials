@@ -46,8 +46,9 @@
   <div id="map"></div>
 </div>
 <script>
-const MANIFEST = {"sites": [{"name": "Autzen, Oregon: LiDAR terrain and canopy (Episode 2)", "layers": [{"id": "chm", "png": "chm.png", "grid": "chm.json", "bounds": [[44.04970924771406, -123.0755422285262], [44.06278056901773, -123.06194786885942]], "vmin": 0.0, "vmax": 100.0, "classes": null, "colors": null, "cmap": "YlGn"}, {"id": "dtm", "png": "dtm.png", "grid": "dtm.json", "bounds": [[44.04970924771406, -123.0755422285262], [44.06278056901773, -123.06194786885942]], "vmin": 407.2200012207031, "vmax": 451.4800109863281, "classes": null, "colors": null, "cmap": "terrain"}], "units": "ft"}, {"name": "Ordway-Swisher, Florida: tree crowns (Episode 3)", "layers": [{"id": "crowns", "geojson": "crowns.geojson", "bounds": [[29.6923229544475, -81.99009812206216], [29.692684534936888, -81.98968341106531]], "count": 52}], "units": "m"}, {"name": "Story County, Iowa: crop types (Episode 4)", "layers": [{"id": "crops", "png": "crops.png", "grid": "crops.json", "bounds": [[41.94894759820548, -93.75186252972459], [42.101210188537834, -93.54884961738703]], "vmin": null, "vmax": null, "classes": ["Corn", "Soybeans", "Alfalfa / hay", "Grass / pasture", "Forest", "Water", "Developed", "Wetlands"], "colors": ["#fbbf24", "#22c55e", "#a3e635", "#d9f99d", "#166534", "#3b82f6", "#ef4444", "#67e8f9"], "cmap": null}], "units": ""}]};
+const MANIFEST = {"sites": [{"name": "Autzen, Oregon: LiDAR terrain and canopy (Episode 2)", "layers": [{"id": "chm", "png": "chm.png", "grid": "chm.json", "bounds": [[44.04970924771406, -123.0755422285262], [44.06278056901773, -123.06194786885942]], "vmin": 0.0, "vmax": 100.0, "classes": null, "colors": null, "cmap": "YlGn"}, {"id": "dtm", "png": "dtm.png", "grid": "dtm.json", "bounds": [[44.04970924771406, -123.0755422285262], [44.06278056901773, -123.06194786885942]], "vmin": 407.2200012207031, "vmax": 451.4800109863281, "classes": null, "colors": null, "cmap": "terrain"}], "units": "ft"}, {"name": "Ordway-Swisher, Florida: tree crowns (Episode 3)", "layers": [{"id": "crowns", "geojson": "crowns.geojson", "bounds": [[29.6923229544475, -81.99009812206216], [29.692684534936888, -81.98968341106531]], "count": 52}, {"id": "rgb", "png": "rgb.png", "bounds": [[29.69232182671223, -81.99009944919113], [29.69268586318692, -81.98968250900552]], "rgb": true, "on": true, "credit": "NEON airborne RGB, 10 cm (OSBS site)"}], "units": "m"}, {"name": "Story County, Iowa: crop types (Episode 4)", "layers": [{"id": "crops", "png": "crops.png", "grid": "crops.json", "bounds": [[41.94894759820548, -93.75186252972459], [42.101210188537834, -93.54884961738703]], "vmin": null, "vmax": null, "classes": ["Corn", "Soybeans", "Alfalfa / hay", "Grass / pasture", "Forest", "Water", "Developed", "Wetlands"], "colors": ["#fbbf24", "#22c55e", "#a3e635", "#d9f99d", "#166534", "#3b82f6", "#ef4444", "#67e8f9"], "cmap": null}], "units": ""}]};
 const map = L.map('map', { zoomControl: true });
+map.createPane('backdrop').style.zIndex = 350;   // above tiles, below overlays
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxNativeZoom: 19, maxZoom: 22, attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
@@ -57,6 +58,9 @@ let active = [];
 function legendFor(layer) {
   if (layer.classes) {
     return layer.classes.map((c, i) => `<div class="row"><span class="swatch" style="background:${layer.colors[i]}"></span>${c}</div>`).join('');
+  }
+  if (layer.rgb) {
+    return `<div class="row">${layer.credit || 'RGB backdrop'}</div>`;
   }
   if (layer.png) {
     const stops = {YlGn: '#ffffe5,#78c679,#004529', terrain: '#333399,#00b36b,#e6d9a6,#ffffff'}[layer.cmap] || '#000,#fff';
@@ -74,7 +78,9 @@ function showSite(i) {
   let legend = '';
   site.layers.forEach((layer, k) => {
     let lf;
-    if (layer.png) {
+    if (layer.rgb) {
+      lf = L.imageOverlay(layer.png, layer.bounds, { opacity: 1, pane: 'backdrop' });
+    } else if (layer.png) {
       lf = L.imageOverlay(layer.png, layer.bounds, { opacity: +document.getElementById('opacity').value });
       fetch(layer.grid).then(r => r.json()).then(g => grids[layer.id] = g);
     } else {
@@ -82,7 +88,7 @@ function showSite(i) {
         onEachFeature: (f, l) => l.bindPopup(`Crown diameter <b>${f.properties.crown_diam_m} m</b><br>confidence ${(f.properties.score * 100).toFixed(0)}%`) });
       fetch(layer.geojson).then(r => r.json()).then(d => lf.addData(d));
     }
-    const on = k === 0;
+    const on = layer.on !== undefined ? layer.on : k === 0;
     if (on) lf.addTo(map);
     active.push({ ...layer, leaflet: lf, on });
     box.insertAdjacentHTML('beforeend', `<div class="layer"><input type="checkbox" id="l${k}" ${on ? 'checked' : ''}> <label for="l${k}" style="margin:0;color:var(--fg)">${layer.id.toUpperCase()}</label></div>`);
@@ -109,7 +115,7 @@ map.on('click', e => {
   }
 });
 
-document.getElementById('opacity').oninput = e => active.forEach(l => l.png && l.leaflet.setOpacity(+e.target.value));
+document.getElementById('opacity').oninput = e => active.forEach(l => l.png && !l.rgb && l.leaflet.setOpacity(+e.target.value));
 const sel = document.getElementById('site');
 MANIFEST.sites.forEach((s, i) => sel.insertAdjacentHTML('beforeend', `<option value="${i}">${s.name}</option>`));
 sel.onchange = e => { showSite(+e.target.value); history.replaceState(null, '', '?site=' + e.target.value); };
