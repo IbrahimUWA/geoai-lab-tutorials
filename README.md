@@ -7,6 +7,7 @@ you can run the whole thing on your own machine.
 | Episode | Topic | Folder |
 |---|---|---|
 | 2 | LiDAR point clouds in Python: ground classification, terrain model and canopy height | [`ep02-lidar-python`](ep02-lidar-python) |
+| 4 | Crop type mapping from Sentinel-2 with a random forest | [`ep04-crop-mapping`](ep04-crop-mapping) |
 
 More episodes are added as they are published.
 
