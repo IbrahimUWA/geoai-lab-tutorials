@@ -4,7 +4,7 @@ Ground classification, digital terrain model, digital surface model and canopy h
 LAS/LAZ file, in plain Python. The ground classifier is a progressive morphological filter
 (Zhang et al., 2003) written from scratch with NumPy and SciPy.
 
-Video: https://youtu.be/Ia4OCT15oeQ
+Video: https://youtu.be/HzDmpLFB380
 
 ## Data
 
