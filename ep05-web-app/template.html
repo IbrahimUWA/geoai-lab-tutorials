@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GeoAI Lab map viewer</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root { --bg:#0b1220; --panel:#111827; --fg:#e5e7eb; --muted:#94a3b8; --accent:#38bdf8; --line:#1e293b; }
+  html, body { height:100%; margin:0; background:var(--bg); color:var(--fg); font-family:"Segoe UI", system-ui, sans-serif; }
+  #app { display:grid; grid-template-columns: 340px 1fr; height:100%; }
+  #side { background:var(--panel); border-right:1px solid var(--line); padding:20px; overflow:auto; }
+  #map { height:100%; }
+  h1 { font-size:20px; margin:0 0 4px; color:var(--accent); }
+  .sub { color:var(--muted); font-size:13px; margin-bottom:18px; }
+  label { display:block; font-size:13px; color:var(--muted); margin:14px 0 6px; }
+  select, input[type=range] { width:100%; }
+  select { background:#0f172a; color:var(--fg); border:1px solid var(--line); padding:8px; border-radius:8px; font-size:14px; }
+  .layer { display:flex; align-items:center; gap:8px; padding:6px 0; font-size:14px; }
+  .legend { margin-top:14px; font-size:12px; color:var(--muted); }
+  .legend .row { display:flex; align-items:center; gap:8px; margin:3px 0; }
+  .swatch { width:14px; height:14px; border-radius:3px; display:inline-block; }
+  .ramp { height:12px; border-radius:6px; margin:6px 0 2px; }
+  #readout { margin-top:18px; padding:12px; background:#0f172a; border:1px solid var(--line); border-radius:10px; font-size:14px; min-height:44px; }
+  #readout b { color:var(--accent); }
+  .foot { margin-top:22px; font-size:12px; color:var(--muted); line-height:1.5; }
+  @media (max-width: 760px) { #app { grid-template-columns:1fr; grid-template-rows: auto 1fr; } #side { max-height:45vh; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="side">
+    <h1>GeoAI Lab map viewer</h1>
+    <div class="sub">Results from the tutorial series, served as a static page. Click the map to read values.</div>
+    <label for="site">Site</label>
+    <select id="site"></select>
+    <label>Layers</label>
+    <div id="layers"></div>
+    <label for="opacity">Overlay opacity</label>
+    <input id="opacity" type="range" min="0" max="1" step="0.05" value="0.85">
+    <div class="legend" id="legend"></div>
+    <div id="readout">Click anywhere on an overlay.</div>
+    <div class="foot">Basemap: Esri World Imagery. Built with Leaflet and open data. Episode code on GitHub.</div>
+  </div>
+  <div id="map"></div>
+</div>
+<script>
+/*MANIFEST*/
+const map = L.map('map', { zoomControl: true });
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  maxNativeZoom: 19, maxZoom: 22, attribution: 'Esri, Maxar, Earthstar Geographics'
+}).addTo(map);
+const grids = {};
+let active = [];
+
+function legendFor(layer) {
+  if (layer.classes) {
+    return layer.classes.map((c, i) => `<div class="row"><span class="swatch" style="background:${layer.colors[i]}"></span>${c}</div>`).join('');
+  }
+  if (layer.png) {
+    const stops = {YlGn: '#ffffe5,#78c679,#004529', terrain: '#333399,#00b36b,#e6d9a6,#ffffff'}[layer.cmap] || '#000,#fff';
+    return `<div class="ramp" style="background:linear-gradient(90deg,${stops})"></div><div class="row"><span>${layer.vmin.toFixed(0)}</span><span style="flex:1"></span><span>${layer.vmax.toFixed(0)}</span></div>`;
+  }
+  return `<div class="row"><span class="swatch" style="background:#4ade80"></span>${layer.count} detected crowns</div>`;
+}
+
+function showSite(i) {
+  active.forEach(l => map.removeLayer(l.leaflet));
+  active = [];
+  const site = MANIFEST.sites[i];
+  const box = document.getElementById('layers');
+  box.innerHTML = '';
+  let legend = '';
+  site.layers.forEach((layer, k) => {
+    let lf;
+    if (layer.png) {
+      lf = L.imageOverlay(layer.png, layer.bounds, { opacity: +document.getElementById('opacity').value });
+      fetch(layer.grid).then(r => r.json()).then(g => grids[layer.id] = g);
+    } else {
+      lf = L.geoJSON(null, { style: { color: '#4ade80', weight: 1.2, fillOpacity: 0.08 },
+        onEachFeature: (f, l) => l.bindPopup(`Crown diameter <b>${f.properties.crown_diam_m} m</b><br>confidence ${(f.properties.score * 100).toFixed(0)}%`) });
+      fetch(layer.geojson).then(r => r.json()).then(d => lf.addData(d));
+    }
+    const on = k === 0;
+    if (on) lf.addTo(map);
+    active.push({ ...layer, leaflet: lf, on });
+    box.insertAdjacentHTML('beforeend', `<div class="layer"><input type="checkbox" id="l${k}" ${on ? 'checked' : ''}> <label for="l${k}" style="margin:0;color:var(--fg)">${layer.id.toUpperCase()}</label></div>`);
+    document.getElementById('l' + k).onchange = e => { e.target.checked ? lf.addTo(map) : map.removeLayer(lf); active[k].on = e.target.checked; };
+    legend += `<div style="margin-top:8px"><b style="color:var(--fg)">${layer.id.toUpperCase()}</b>${legendFor(layer)}</div>`;
+  });
+  document.getElementById('legend').innerHTML = legend;
+  map.fitBounds(site.layers[0].bounds, { padding: [40, 40] });
+  document.getElementById('readout').textContent = 'Click anywhere on an overlay.';
+}
+
+map.on('click', e => {
+  for (const layer of active) {
+    if (!layer.on || !layer.png || !grids[layer.id]) continue;
+    const g = grids[layer.id], [[s, w], [n, ee]] = g.bounds;
+    const r = Math.floor((n - e.latlng.lat) / (n - s) * g.rows), c = Math.floor((e.latlng.lng - w) / (ee - w) * g.cols);
+    if (r < 0 || c < 0 || r >= g.rows || c >= g.cols) continue;
+    const v = g.values[r][c];
+    if (v === null) continue;
+    const site = MANIFEST.sites[document.getElementById('site').value];
+    const text = layer.classes ? layer.classes[Math.round(v)] : `${(+v).toFixed(1)} ${site.units}`;
+    document.getElementById('readout').innerHTML = `${layer.id.toUpperCase()} at ${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}: <b>${text}</b>`;
+    return;
+  }
+});
+
+document.getElementById('opacity').oninput = e => active.forEach(l => l.png && l.leaflet.setOpacity(+e.target.value));
+const sel = document.getElementById('site');
+MANIFEST.sites.forEach((s, i) => sel.insertAdjacentHTML('beforeend', `<option value="${i}">${s.name}</option>`));
+sel.onchange = e => { showSite(+e.target.value); history.replaceState(null, '', '?site=' + e.target.value); };
+const start = +(new URLSearchParams(location.search).get('site') || 0);
+sel.value = start;
+showSite(start);
+</script>
+</body>
+</html>
