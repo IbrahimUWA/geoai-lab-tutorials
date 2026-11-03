@@ -6,6 +6,7 @@ you can run the whole thing on your own machine.
 
 | Episode | Topic | Video | Folder |
 |---|---|---|---|
+| 1 | Drone mapping from scratch with OpenDroneMap: orthomosaic, DSM, DTM and contours from a folder of photos | [Watch](https://youtu.be/dRM6VbwCwlw) | [`ep01-drone-mapping`](ep01-drone-mapping) |
 | 2 | LiDAR point clouds in Python: ground classification, terrain model and canopy height | [Watch](https://youtu.be/HzDmpLFB380) | [`ep02-lidar-python`](ep02-lidar-python) |
 | 3 | Detect individual trees in drone / airborne imagery with deep learning (DeepForest) | [Watch](https://youtu.be/sM0gVm-4oBo) | [`ep03-tree-detection`](ep03-tree-detection) |
 | 4 | Crop type mapping from Sentinel-2 with a random forest | [Watch](https://youtu.be/69nm5NyzPng) | [`ep04-crop-mapping`](ep04-crop-mapping) |
