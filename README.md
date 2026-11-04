@@ -11,6 +11,7 @@ you can run the whole thing on your own machine.
 | 3 | Detect individual trees in drone / airborne imagery with deep learning (DeepForest) | [Watch](https://youtu.be/sM0gVm-4oBo) | [`ep03-tree-detection`](ep03-tree-detection) |
 | 4 | Crop type mapping from Sentinel-2 with a random forest | [Watch](https://youtu.be/69nm5NyzPng) | [`ep04-crop-mapping`](ep04-crop-mapping) |
 | 5 | A geospatial web app in an hour with AI-assisted coding (Leaflet, GitHub Pages) | [Watch](https://youtu.be/SDgUc4aq4P8) | [`ep05-web-app`](ep05-web-app) |
+| 6 | NDVI time series and crop phenology from a year of Sentinel-2: start, peak and end of season per pixel | [Watch](https://youtu.be/KKHI5Hbf6LU) | [`ep06-ndvi-phenology`](ep06-ndvi-phenology) |
 
 Playlist: https://www.youtube.com/playlist?list=PLJ4-bgxsdmvg
 
