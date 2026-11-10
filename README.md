@@ -13,6 +13,14 @@ you can run the whole thing on your own machine.
 | 5 | A geospatial web app in an hour with AI-assisted coding (Leaflet, GitHub Pages) | [Watch](https://youtu.be/SDgUc4aq4P8) | [`ep05-web-app`](ep05-web-app) |
 | 6 | NDVI time series and crop phenology from a year of Sentinel-2: start, peak and end of season per pixel | [Watch](https://youtu.be/KKHI5Hbf6LU) | [`ep06-ndvi-phenology`](ep06-ndvi-phenology) |
 
+### Series 2: AI systems for organisations
+
+Each lecture in this series has its own repository with the code, evaluation set and a step-by-step guide.
+
+| Lecture | Topic | Video | Code |
+|---|---|---|---|
+| 1 | RAG and vector databases: a private AI assistant for your organisation's documents, built on 32 Australian government agriculture reports with local open-weight models, access control and an audit log | [Watch](https://youtu.be/QGgdQjl7YRw) | [`geoai-rag-vector-database`](https://github.com/IbrahimUWA/geoai-rag-vector-database) |
+
 Playlist: https://www.youtube.com/playlist?list=PLJ4-bgxsdmvg
 
 Live demo of the episode 5 web app (served from the `docs` folder by GitHub Pages): https://ibrahimuwa.github.io/geoai-lab-tutorials/
