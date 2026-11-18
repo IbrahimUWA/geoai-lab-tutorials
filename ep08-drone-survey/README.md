@@ -5,7 +5,7 @@ sample distance (GSD), photo footprint, speed, photo spacing, front and side ove
 measured overlap map (every ground point projected into every aligned camera). Plus planning charts
 for GSD and photo count against flight height for three cameras.
 
-Video: https://youtu.be/Smw86pLmYBI (part 2: https://youtu.be/Y_2GcpozGiE)
+Video: https://youtu.be/Smw86pLmYBI (part 2: https://youtu.be/3jzh7yXuYOI)
 
 ## Data
 

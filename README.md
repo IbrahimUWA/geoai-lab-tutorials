@@ -13,7 +13,7 @@ you can run the whole thing on your own machine.
 | 5 | A geospatial web app in an hour with AI-assisted coding (Leaflet, GitHub Pages) | [Watch](https://youtu.be/SDgUc4aq4P8) | [`ep05-web-app`](ep05-web-app) |
 | 6 | NDVI time series and crop phenology from a year of Sentinel-2: start, peak and end of season per pixel | [Watch](https://youtu.be/KKHI5Hbf6LU) | [`ep06-ndvi-phenology`](ep06-ndvi-phenology) |
 | 7 | Drone mapping, part 1: plan a survey (GSD, overlap, motion blur, ground control, CASA rules) from a real flight | [Watch](https://youtu.be/Smw86pLmYBI) | [`ep08-drone-survey`](ep08-drone-survey) |
-| 8 | Drone mapping, part 2: Agisoft Metashape from Python (orthomosaic, DSM, DTM), then trees, VARI, slope | [Watch](https://youtu.be/Y_2GcpozGiE) | [`ep09-metashape`](ep09-metashape) |
+| 8 | Drone mapping, part 2: Agisoft Metashape from Python (orthomosaic, DSM, DTM), then trees, VARI, slope | [Watch](https://youtu.be/3jzh7yXuYOI) | [`ep09-metashape`](ep09-metashape) |
 
 ### Series 2: AI systems for organisations
 

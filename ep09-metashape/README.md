@@ -5,7 +5,7 @@ aligned cameras, a dense point cloud, ground classification, DSM, orthomosaic an
 script measures things from the outputs: canopy height, tree tops, an RGB vegetation index (VARI),
 slope and contours, a cross-section, and a comparison against the OpenDroneMap run from episode 1.
 
-Video: https://youtu.be/Y_2GcpozGiE (part 1: https://youtu.be/Smw86pLmYBI)
+Video: https://youtu.be/3jzh7yXuYOI (part 1: https://youtu.be/Smw86pLmYBI)
 
 ## What you need
 
